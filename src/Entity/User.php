@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
  */
-class User
+class User implements \JsonSerializable
 {
     /**
      * @ORM\Id()
@@ -40,6 +40,17 @@ class User
      * @ORM\Column(type="datetime")
      */
     private $birthdate;
+
+    public function jsonSerialize()
+    {
+        return [
+            'id' => $this->id,
+            'email' => $this->email,
+            'name' => $this->name,
+            'surname' => $this->surname,
+            'birthdate' => $this->birthdate->format('Y-m-d'),
+        ];
+    }
 
     public function getId(): ?int
     {
