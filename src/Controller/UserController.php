@@ -5,45 +5,45 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
 
-class UserController extends AbstractController
+class UserController extends CRUDController
 {
     /**
-     * @Route("/users", methods={"GET"})
-     * @param UserRepository $userRepository
-     * @return JsonResponse
+     * @var Request
      */
-    public function findAll(UserRepository $userRepository): JsonResponse
+    private $request;
+    /**
+     * @var UserRepository
+     */
+    private $repository;
+    /**
+     * @var EntityManagerInterface
+     */
+    private $entityManager;
+
+    /**
+     * UserController constructor.
+     * @param UserRepository $repository
+     * @param EntityManagerInterface $entityManager
+     */
+    public function __construct(UserRepository $repository, EntityManagerInterface $entityManager)
     {
-        return $this->json($userRepository->findAll());
+        parent::__construct($repository, $entityManager);
+        $this->repository = $repository;
+        $this->entityManager = $entityManager;
     }
 
     /**
-     * @Route("/users/{id}", methods={"GET"})
-     * @param int $id
-     * @param UserRepository $userRepository
-     * @return JsonResponse
-     */
-    public function findOne(int $id, UserRepository $userRepository): JsonResponse
-    {
-        return $this->json($userRepository->find($id));
-    }
-
-    /**
-     * @Route("/users", methods={"POST"})
      * @param Request $request
-     * @param EntityManagerInterface $em
      * @return JsonResponse
      * @throws \Exception
      */
-    public function create(Request $request, EntityManagerInterface $em): JsonResponse
+    public function create(Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent());
+        $data = json_decode($this->request->getContent());
         $user = (new User())
             ->setEmail($data->email)
             ->setName($data->name)
@@ -51,49 +51,29 @@ class UserController extends AbstractController
             ->setPassword(password_hash($data->password, PASSWORD_ARGON2I))
             ->setBirthdate(new \DateTime($data->birthdate));
 
-        $em->persist($user);
-        $em->flush();
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
 
         return $this->json([], Response::HTTP_NO_CONTENT);
     }
 
     /**
-     * @Route("/users/{id}", methods={"POST"})
      * @param int $id
      * @param Request $request
-     * @param UserRepository $userRepository
-     * @param EntityManagerInterface $em
      * @return JsonResponse
      * @throws \Exception
      */
-    public function update(int $id, Request $request, UserRepository $userRepository, EntityManagerInterface $em): JsonResponse
+    public function update(int $id, Request $request): JsonResponse
     {
         $data = json_decode($request->getContent());
-        $user = $userRepository->find($id);
+        $user = $this->repository->find($id);
         $user
             ->setEmail($data->email)
             ->setName($data->name)
             ->setSurname($data->surname)
             ->setBirthdate(new \DateTime($data->birthdate));
 
-        $em->flush();
-
-        return $this->json([], Response::HTTP_NO_CONTENT);
-    }
-
-    /**
-     * @Route("/users/{id}", methods={"DELETE"})
-     * @param int $id
-     * @param UserRepository $userRepository
-     * @param EntityManagerInterface $em
-     * @return JsonResponse
-     * @throws \Exception
-     */
-    public function delete(int $id, UserRepository $userRepository, EntityManagerInterface $em): JsonResponse
-    {
-        $user = $userRepository->find($id);
-        $em->remove($user);
-        $em->flush();
+        $this->entityManager->flush();
 
         return $this->json([], Response::HTTP_NO_CONTENT);
     }
