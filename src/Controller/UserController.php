@@ -43,7 +43,7 @@ class UserController extends CRUDController
      */
     public function create(Request $request): JsonResponse
     {
-        $data = json_decode($this->request->getContent());
+        $data = json_decode($request->getContent());
         $user = (new User())
             ->setEmail($data->email)
             ->setName($data->name)
