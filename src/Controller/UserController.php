@@ -10,12 +10,23 @@ use Symfony\Component\Routing\Annotation\Route;
 class UserController extends AbstractController
 {
     /**
-     * @Route("/users", name="users", methods={"GET"})
+     * @Route("/users", methods={"GET"})
      * @param UserRepository $userRepository
      * @return JsonResponse
      */
-    public function index(UserRepository $userRepository)
+    public function findAll(UserRepository $userRepository): JsonResponse
     {
         return $this->json($userRepository->findAll());
+    }
+
+    /**
+     * @Route("/users/{id}", methods={"GET"})
+     * @param int $id
+     * @param UserRepository $userRepository
+     * @return JsonResponse
+     */
+    public function findOne(int $id, UserRepository $userRepository): JsonResponse
+    {
+        return $this->json($userRepository->find($id));
     }
 }
