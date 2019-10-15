@@ -4,13 +4,11 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\ORMException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 class UserController extends AbstractController
@@ -39,12 +37,11 @@ class UserController extends AbstractController
     /**
      * @Route("/users", methods={"POST"})
      * @param Request $request
-     * @param UserRepository $userRepository
      * @param EntityManagerInterface $em
      * @return JsonResponse
      * @throws \Exception
      */
-    public function create(Request $request, UserRepository $userRepository, EntityManagerInterface $em): JsonResponse
+    public function create(Request $request, EntityManagerInterface $em): JsonResponse
     {
         $data = json_decode($request->getContent());
         $user = (new User())
@@ -57,6 +54,30 @@ class UserController extends AbstractController
         $em->persist($user);
         $em->flush();
 
-        return $this->json([], 204);
+        return $this->json([], Response::HTTP_NO_CONTENT);
+    }
+
+    /**
+     * @Route("/users/{id}", methods={"POST"})
+     * @param int $id
+     * @param Request $request
+     * @param UserRepository $userRepository
+     * @param EntityManagerInterface $em
+     * @return JsonResponse
+     * @throws \Exception
+     */
+    public function update(int $id, Request $request, UserRepository $userRepository, EntityManagerInterface $em): JsonResponse
+    {
+        $data = json_decode($request->getContent());
+        $user = $userRepository->find($id);
+        $user
+            ->setEmail($data->email)
+            ->setName($data->name)
+            ->setSurname($data->surname)
+            ->setBirthdate(new \DateTime($data->birthdate));
+
+        $em->flush();
+
+        return $this->json([], Response::HTTP_NO_CONTENT);
     }
 }
