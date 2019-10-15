@@ -80,4 +80,21 @@ class UserController extends AbstractController
 
         return $this->json([], Response::HTTP_NO_CONTENT);
     }
+
+    /**
+     * @Route("/users/{id}", methods={"DELETE"})
+     * @param int $id
+     * @param UserRepository $userRepository
+     * @param EntityManagerInterface $em
+     * @return JsonResponse
+     * @throws \Exception
+     */
+    public function delete(int $id, UserRepository $userRepository, EntityManagerInterface $em): JsonResponse
+    {
+        $user = $userRepository->find($id);
+        $em->remove($user);
+        $em->flush();
+
+        return $this->json([], Response::HTTP_NO_CONTENT);
+    }
 }
