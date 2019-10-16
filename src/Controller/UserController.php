@@ -8,6 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 class UserController extends CRUDController
 {
@@ -23,17 +24,22 @@ class UserController extends CRUDController
      * @var EntityManagerInterface
      */
     private $entityManager;
+    /**
+     * @var UserPasswordEncoderInterface
+     */
+    private $encoder;
 
     /**
      * UserController constructor.
      * @param UserRepository $repository
      * @param EntityManagerInterface $entityManager
      */
-    public function __construct(UserRepository $repository, EntityManagerInterface $entityManager)
+    public function __construct(UserRepository $repository, EntityManagerInterface $entityManager, UserPasswordEncoderInterface $encoder)
     {
         parent::__construct($repository, $entityManager);
         $this->repository = $repository;
         $this->entityManager = $entityManager;
+        $this->encoder = $encoder;
     }
 
     /**
@@ -48,8 +54,9 @@ class UserController extends CRUDController
             ->setEmail($data->email)
             ->setName($data->name)
             ->setSurname($data->surname)
-            ->setPassword(password_hash($data->password, PASSWORD_ARGON2I))
             ->setBirthdate(new \DateTime($data->birthdate));
+        $password = $this->encoder->encodePassword($user, $data->password);
+        $user->setPassword($password);
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
