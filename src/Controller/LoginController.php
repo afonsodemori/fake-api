@@ -50,7 +50,7 @@ class LoginController extends AbstractController
             ], Response::HTTP_UNAUTHORIZED);
         }
 
-        $token = JWT::encode(['email' => $user->getEmail()], 'myverysecretkey');
+        $token = JWT::encode(['email' => $user->getEmail()], $request->server->get('JWT_KEY'));
 
         return $this->json([
             'token' => $token,

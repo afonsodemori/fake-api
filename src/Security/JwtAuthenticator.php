@@ -32,7 +32,11 @@ class JwtAuthenticator extends AbstractGuardAuthenticator
 
     public function supports(Request $request)
     {
-        return $request->getMethod() !== 'GET' ?? $request->getPathInfo() !== '/login';
+        if ($request->getMethod() === 'GET') {
+            return false;
+        }
+
+        return $request->getPathInfo() !== '/login';
     }
 
     public function getCredentials(Request $request)
@@ -40,7 +44,7 @@ class JwtAuthenticator extends AbstractGuardAuthenticator
         $token = substr($request->headers->get('Authorization'), 7);
 
         try {
-            return JWT::decode($token, 'myverysecretkey', ['HS256']);
+            return JWT::decode($token, $request->server->get('JWT_KEY'), ['HS256']);
         } catch (\Exception $e) {
             return false;
         }
